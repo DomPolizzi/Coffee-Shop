@@ -5,7 +5,7 @@ import json
 from flask_cors import CORS
 
 from .database.models import db_drop_and_create_all, setup_db, Drink
-from .auth.auth import AuthError, requires_auth
+from .auth.auth import AuthError, requires_auth, get_token_auth_header
 
 app = Flask(__name__)
 setup_db(app)
@@ -19,6 +19,11 @@ CORS(app)
 # db_drop_and_create_all()
 
 ## ROUTES
+@app.route('/drinks')
+def retrieve_drinks():
+    print('test api works')
+    return 'not implemented'
+
 '''
 @TODO implement endpoint
     GET /drinks
@@ -87,6 +92,13 @@ def unprocessable(error):
                     "message": "unprocessable"
                     }), 422
 
+@app.errorhandler(404)
+def unreachable(error):
+    return jsonify({
+                    "success": False, 
+                    "error": 404,
+                    "message": "Not Found"
+                    }), 404
 '''
 @TODO implement error handlers using the @app.errorhandler(error) decorator
     each error handler should return (with approprate messages):
