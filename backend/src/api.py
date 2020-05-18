@@ -1,5 +1,12 @@
 import os
-from flask import Flask, request, jsonify, abort
+from flask import (
+    Flask,
+    request,
+    jsonify,
+    abort,
+    request,
+    Response
+)
 from sqlalchemy import exc
 import json
 from flask_cors import CORS
@@ -7,42 +14,94 @@ from flask_cors import CORS
 from .database.models import db_drop_and_create_all, setup_db, Drink
 from .auth.auth import AuthError, requires_auth, get_token_auth_header
 
+
+DRINKS_PER_PAGE = 5
+
+# Paginiation of drinks
+
+def paginate_drinks(request, selection):
+    page = request.args.get('page', 1, type=int)
+    start = (page - 1) * DRINKS_PER_PAGE
+    end = start + DRINKS_PER_PAGE
+
+    drinks = [drink.format() for drinks in selection]
+    current_drinks = drinks[start:end]
+
+    return current_drinks
+
 app = Flask(__name__)
 setup_db(app)
 CORS(app)
+
 
 '''
 @TODO uncomment the following line to initialize the datbase
 !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 '''
-# db_drop_and_create_all()
+db_drop_and_create_all()
 
+# ===================
 ## ROUTES
+# ===================
+
 @app.route('/drinks')
 def retrieve_drinks():
-    print('test api works')
-    return 'not implemented'
+    
+    drinks = Drink.query.all()
+    
+    try:
+        return jsonify({
+            'success': True,
+            'drinks' : [drink.short() for drink in drinks]
+        }), 200
+    except:
+        abort(404)
 
-'''
-@TODO implement endpoint
-    GET /drinks
-        it should be a public endpoint
-        it should contain only the drink.short() data representation
-    returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
-        or appropriate status code indicating reason for failure
-'''
+
+@app.route('/drinks-detail')
+def drinks_detail():
+    
+    drinks = Drink.query.all()
+    
+    try:
+        return jsonify({
+            'sucess': True,
+            'drinks': [drink.long() for drink in drinks]
+        }), 200
+
+    except:
+        abort(404)
 
 
-'''
-@TODO implement endpoint
-    GET /drinks-detail
-        it should require the 'get:drinks-detail' permission
-        it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
-        or appropriate status code indicating reason for failure
-'''
+@app.route('/drinks', methods=['POST'])
+def create_drink():
+    body =request.get_json()
+    new_drink = body.get('title', None)
+    new_recipe = body.get('recipe', None)
 
+    try:
+        drink = Drink(drink=new_drink, recipe=new_recipe)
+        drink.insert()
+
+        #selection = Drink.query.order_by(Drink.id).all()
+        #current_drinks = paginate_drinks(request, selection)
+        #created_id = drink.id
+
+        #total_drinks = len(Drink.query.all())
+
+        return jsonify({
+            "success": True,
+            "drinks": drink.long()
+            #"created": created_id,
+            #"drink_created": drink.drink,
+            #"drinks": current_drinks,
+            #"total_questions": total_drinks
+        })
+
+    except:
+        abort(422)
+        
 
 '''
 @TODO implement endpoint
