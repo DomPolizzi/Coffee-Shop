@@ -14,7 +14,7 @@ from flask_cors import CORS
 from .database.models import db_drop_and_create_all, setup_db, Drink
 from .auth.auth import AuthError, requires_auth, get_token_auth_header
 
-
+'''
 DRINKS_PER_PAGE = 5
 
 # Paginiation of drinks
@@ -28,6 +28,7 @@ def paginate_drinks(request, selection):
     current_drinks = drinks[start:end]
 
     return current_drinks
+'''
 
 app = Flask(__name__)
 setup_db(app)
@@ -81,7 +82,7 @@ def create_drink():
     new_recipe = body.get('recipe', None)
 
     try:
-        drink = Drink(drink=new_drink, recipe=new_recipe)
+        drink = Drink(title=new_drink, recipe=new_recipe)
         drink.insert()
 
         #selection = Drink.query.order_by(Drink.id).all()
@@ -139,40 +140,42 @@ def create_drink():
 '''
 
 
-## Error Handling
-'''
-Example error handling for unprocessable entity
-'''
+# =================================================================
+#  Error Handlers
+# =================================================================
+
 @app.errorhandler(422)
 def unprocessable(error):
     return jsonify({
-                    "success": False, 
-                    "error": 422,
-                    "message": "unprocessable"
-                    }), 422
+        "success": False, 
+        "error": 422,
+        "message": "unprocessable"
+    }), 422
 
 @app.errorhandler(404)
 def unreachable(error):
     return jsonify({
-                    "success": False, 
-                    "error": 404,
-                    "message": "Not Found"
-                    }), 404
-'''
-@TODO implement error handlers using the @app.errorhandler(error) decorator
-    each error handler should return (with approprate messages):
-             jsonify({
-                    "success": False, 
-                    "error": 404,
-                    "message": "resource not found"
-                    }), 404
+        "success": False, 
+        "error": 404,
+        "message": "Not Found"
+    }), 404
 
-'''
 
-'''
-@TODO implement error handler for 404
-    error handler should conform to general task above 
-'''
+@app.errorhandler(400)
+def bad_request(error):
+    return jsonify({
+        "success": False,
+        "error": 400,
+        "message": "bad request"
+    }), 400
+
+@app.errorhandler(405)
+def not_allowed(error):
+    return jsonify({
+        "success": False,
+        "error": 405,
+        "message": "not allowed"
+    }), 405
 
 
 '''

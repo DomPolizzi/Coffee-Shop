@@ -4,23 +4,29 @@ from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
 
-
+'''
+AUTH0_DOMAIN = 'udacity-fsnd.auth0.com'
+ALGORITHMS = ['RS256']
+API_AUDIENCE = 'dev'
+'''
 AUTH0_DOMAIN = 'dev-56d3ctn7.auth0.com'
 ALGORITHMS = ['RS256']
-API_AUDIENCE = 'image'
+API_AUDIENCE = 'coffee-shop'
 
-## AuthError Exception
+# AuthError Exception
 '''
 AuthError Exception
 A standardized way to communicate auth failure modes
 '''
+
+
 class AuthError(Exception):
     def __init__(self, error, status_code):
         self.error = error
         self.status_code = status_code
 
 
-## Auth Header
+# Auth Header
 
 '''
 @TODO implement get_token_auth_header() method
@@ -30,23 +36,28 @@ class AuthError(Exception):
         it should raise an AuthError if the header is malformed
     return the token part of the header
 '''
+
+
 def get_token_auth_header():
-    if 'Authorization' not in request.headers:
-        abort(401)
 
-    auth_header = request.headers['Authorization']
-    header_parts = auth_header.split(' ')[1]
+    if 'Authorization' in request.headers:
+        auth_header = request.headers['Authorization']
 
-    if len(header_parts) != 2:
-        abort(401)
-    elif header_parts[0].lower() != 'bearer':
-        abort(401)
+        try:
+            if auth_header:
+                bearer_token_array = auth_header.split(' ')
+                if bearer_token_array[0] and bearer_token_array[0].lower() == "bearer" and bearer_token_array[1]:
+                    return bearer_token_array[1]
+        except:
+            return AuthError({
+                'success': False,
+                'message': 'Not found',
+                'error': 401
+            }, 401)
 
     else:
-        raise Exception('Not Implemented')
-    
-    return header_parts[1]   
-    
+        abort(401)
+
 
 '''
 @TODO implement check_permissions(permission, payload) method
@@ -59,6 +70,8 @@ def get_token_auth_header():
     it should raise an AuthError if the requested permission string is not in the payload permissions array
     return true otherwise
 '''
+
+
 def check_permissions(permission, payload):
     if 'permissions' not in payload:
         raise AuthError({
@@ -71,12 +84,12 @@ def check_permissions(permission, payload):
             'code': 'unauthorized',
             'description': 'Permission not found.'
         }, 403)
-        
+
     else:
-        raise Exception('Not Implemented')
+        print('Permission Checked!')
 
     return True
-    
+
 
 '''
 @TODO implement verify_decode_jwt(token) method
@@ -91,11 +104,16 @@ def check_permissions(permission, payload):
 
     !!NOTE urlopen has a common certificate error described here: https://stackoverflow.com/questions/50236117/scraping-ssl-certificate-verify-failed-error-for-http-en-wikipedia-org
 '''
+
+
 def verify_decode_jwt(token):
+
     jsonurl = urlopen(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json')
     jwks = json.loads(jsonurl.read())
     unverified_header = jwt.get_unverified_header(token)
+
     rsa_key = {}
+
     if 'kid' not in unverified_header:
         raise AuthError({
             'code': 'invalid_header',
@@ -144,6 +162,7 @@ def verify_decode_jwt(token):
                 'description': 'Unable to find the appropriate key.'
     }, 400)
 
+
 '''
 raise Exception('Not Implemented')
 '''
@@ -158,6 +177,8 @@ raise Exception('Not Implemented')
     it should use the check_permissions method validate claims and check the requested permission
     return the decorator which passes the decoded payload to the decorated method
 '''
+
+
 def requires_auth(permission=''):
     def requires_auth_decorator(f):
         @wraps(f)
