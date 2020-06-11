@@ -4,11 +4,7 @@ from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
 
-'''
-AUTH0_DOMAIN = 'udacity-fsnd.auth0.com'
-ALGORITHMS = ['RS256']
-API_AUDIENCE = 'dev'
-'''
+
 AUTH0_DOMAIN = 'dev-56d3ctn7.auth0.com'
 ALGORITHMS = ['RS256']
 API_AUDIENCE = 'coffee-shop'
@@ -27,16 +23,6 @@ class AuthError(Exception):
 
 
 # Auth Header
-
-'''
-@TODO implement get_token_auth_header() method
-    it should attempt to get the header from the request
-        it should raise an AuthError if no header is present
-    it should attempt to split bearer and the token
-        it should raise an AuthError if the header is malformed
-    return the token part of the header
-'''
-
 
 def get_token_auth_header():
 
