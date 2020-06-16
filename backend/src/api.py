@@ -18,13 +18,12 @@ app = Flask(__name__)
 setup_db(app)
 CORS(app)
 
-
 '''
 @TODO uncomment the following line to initialize the datbase
 !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 '''
-db_drop_and_create_all()
+#db_drop_and_create_all()
 
 # ===================
 # ROUTES
@@ -80,9 +79,12 @@ def create_drink(payload):
     new_drink = body['title']
     new_recipe = body['recipe']
 
-    drink = Drink(title=new_drink, recipe=json.dumps(new_recipe))
+    try:
+        drink = Drink(title=new_drink, recipe=json.dumps(new_recipe))
+        drink.insert()
 
-    drink.insert()
+    except Exception:
+        abort(400)
 
     return jsonify({
         "success": True,
@@ -112,7 +114,7 @@ def edit_drink_by_id(*args, **kwargs):
     try:
         drink.insert()
 
-    except:
+    except Exception:
         abort(400)
 
     drink = [drink.long()]
@@ -146,13 +148,22 @@ def delete_drink(payload, id):
 #  Error Handlers
 # =================================================================
 
-@app.errorhandler(422)
-def unprocessable(error):
+@app.errorhandler(400)
+def bad_request(error):
     return jsonify({
         "success": False,
-        "error": 422,
-        "message": "unprocessable"
-    }), 422
+        "error": 400,
+        "message": "Bad Request"
+    }), 400
+
+
+@app.errorhandler(401)
+def unauthorized(error):
+    return jsonify({
+        "success": False,
+        "error": 401,
+        "message": 'Unathorized'
+    }), 401
 
 
 @app.errorhandler(404)
@@ -164,22 +175,31 @@ def unreachable(error):
     }), 404
 
 
-@app.errorhandler(400)
-def bad_request(error):
-    return jsonify({
-        "success": False,
-        "error": 400,
-        "message": "bad request"
-    }), 400
-
-
 @app.errorhandler(405)
 def not_allowed(error):
     return jsonify({
         "success": False,
         "error": 405,
-        "message": "not allowed"
+        "message": "Not Allowed"
     }), 405
+
+
+@app.errorhandler(422)
+def unprocessable(error):
+    return jsonify({
+        "success": False,
+        "error": 422,
+        "message": "unprocessable"
+    }), 422
+
+
+@app.errorhandler(500)
+def server_error(error):
+    return jsonify({
+        "success": False,
+        "error": 500,
+        "message": 'Server Error'
+    }), 500
 
 
 @app.errorhandler(AuthError)
